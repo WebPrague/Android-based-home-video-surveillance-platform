@@ -10,7 +10,7 @@ public class SharedPreferencesUtil {
     /**
      * 写入key,value对
      * */
-    public void writeString(Context context, String key, String value){
+    public static void writeString(Context context, String key, String value){
         SharedPreferences sharedPreferences = context.getSharedPreferences("config",context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(key,value);
@@ -20,7 +20,7 @@ public class SharedPreferencesUtil {
     /**
      * 读出value值
      * */
-    public String readString(Context context, String key){
+    public static String readString(Context context, String key){
         SharedPreferences sharedPreferences = context.getSharedPreferences("config", context.MODE_PRIVATE);
         return sharedPreferences.getString(key,null);
     }
