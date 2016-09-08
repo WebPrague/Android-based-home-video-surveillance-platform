@@ -12,8 +12,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="服务器IP地址："
-                android:layout_weight="1"/>
+                android:text="服务器IP地址："/>
         <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -26,5 +25,4 @@
             android:text="保存配置"
             android:id="@+id/btn_save_config"
             android:layout_gravity="center_horizontal"/>
-
 </LinearLayout>

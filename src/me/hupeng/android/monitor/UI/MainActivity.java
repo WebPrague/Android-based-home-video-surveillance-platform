@@ -16,6 +16,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import me.hupeng.android.monitor.Mina.MinaUtil;
 import me.hupeng.android.monitor.R;
+import me.hupeng.android.monitor.Util.SharedPreferencesUtil;
+import me.hupeng.android.monitor.Util.ToastUtil;
+
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -55,14 +58,19 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
         tvServerIp = (TextView) findViewById(R.id.tv_server_ip);
         monitorSwitch = (Switch) findViewById(R.id.swich_monitor);
         surfaceView = (SurfaceView) findViewById(R.id.surface_view);
-        try{
-            String ipAddress = getIpAddress();
-            if (ipAddress.equals("0.0.0.0")){
 
+        //设置客户端的IP地址
+        try{
+            String ipAddress = getClientIp();
+            if (ipAddress.equals("0.0.0.0")){
+                ToastUtil.toast(MainActivity.this, "请先连接WIFI");
             }
+            tvSelfIp.setText(ipAddress);
         }catch (Exception e){
             Log.i("MainActivity", e.getMessage());
         }
+        //设置服务器端的IP地址
+        tvServerIp.setText(getServerIp());
 
         monitorSwitch.setOnCheckedChangeListener(new MyOnCheckedChangeListener());
 
@@ -73,7 +81,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
     /**
      * 得到本机IP地址
      * */
-    private String getIpAddress() {
+    private String getClientIp() {
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = wifi.getConnectionInfo();
         String maxText = info.getMacAddress();
@@ -97,6 +105,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
     private String intToIp(int ip) {
         return (ip & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip >> 16) & 0xFF) + "." + ((ip >> 24) & 0xFF);
     }
+
+    @Override
+    protected void onResume() {
+        tvServerIp .setText(getServerIp());
+        super.onResume();
+    }
+
+    /**
+     * 从配置activity返回的时候更新界面
+     * */
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -227,4 +246,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
         }
         return super.onKeyDown(keyCode, event);
     }
+
+    /**
+     * 得到服务器端的IP地址
+     * */
+    private String getServerIp(){
+        String tempServerIp = SharedPreferencesUtil.readString(MainActivity.this, "server");
+        return (tempServerIp==null || tempServerIp.equals("")) ? "0.0.0.0" : tempServerIp;
+    }
+
+
 }

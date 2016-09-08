@@ -25,6 +25,8 @@ public class ConfigActivity extends Activity{
         btn_save = (Button) findViewById(R.id.btn_save_config);
         //绑定单击回调
         btn_save.setOnClickListener(new MyOnClickListener());
+
+        etServerIp.setText(getServerIp());
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,5 +46,11 @@ public class ConfigActivity extends Activity{
         }
     }
 
-
+    /**
+     * 得到服务器端的IP地址
+     * */
+    private String getServerIp(){
+        String tempServerIp = SharedPreferencesUtil.readString(ConfigActivity.this, "server");
+        return (tempServerIp==null || tempServerIp.equals("")) ? "0.0.0.0" : tempServerIp;
+    }
 }
