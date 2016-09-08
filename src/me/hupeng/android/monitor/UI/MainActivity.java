@@ -2,20 +2,20 @@ package me.hupeng.android.monitor.UI;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.*;
 import android.hardware.Camera;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.*;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import me.hupeng.android.monitor.Mina.MinaUtil;
 import me.hupeng.android.monitor.R;
-import me.hupeng.android.monitor.Util.ToastUtil;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -41,6 +41,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
      * */
     private TextView tvSelfIp,tvServerIp;
     private Switch monitorSwitch;
+
+    /**
+     * 再按一次功能关联变量
+     * */
+    private long exitTime = 0;
 
     /**
      * 初始化变量
@@ -175,5 +180,51 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
                 camera.stopPreview();
             }
         }
+    }
+
+    /**
+     * 创建菜单选项
+     * */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(1, Menu.FIRST, Menu.FIRST, "配置");
+        menu.add(1, Menu.FIRST+1, Menu.FIRST+1, "退出");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     * 添加响应事件
+     * */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int item_id = item.getItemId();
+        switch (item_id){
+            case Menu.FIRST:
+                Intent intent = new Intent(MainActivity.this, ConfigActivity.class);
+                MainActivity.this.startActivity(intent);
+                break;
+            case Menu.FIRST +1:
+                finish();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * 监听返回键，实现再按一次退出功能
+     * */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN){
+            if((System.currentTimeMillis()-exitTime) > 2000){
+                Toast.makeText(getApplicationContext(), "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                exitTime = System.currentTimeMillis();
+            } else {
+                finish();
+                System.exit(0);
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }
