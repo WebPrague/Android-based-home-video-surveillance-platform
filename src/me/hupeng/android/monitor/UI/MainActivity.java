@@ -224,6 +224,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
                 break;
             case Menu.FIRST +1:
                 finish();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
