@@ -19,6 +19,23 @@
                 android:id="@+id/et_server_address"
                 android:layout_weight="1"/>
     </LinearLayout>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="本机编号："/>
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/et_client_id"
+                android:layout_weight="1"/>
+    </LinearLayout>
+
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

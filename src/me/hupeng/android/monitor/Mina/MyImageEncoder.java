@@ -15,11 +15,11 @@ public class MyImageEncoder implements ProtocolEncoder {
 
     @Override
     public void encode(IoSession ioSession, Object message, ProtocolEncoderOutput out) throws Exception {
-        Bitmap bitmap = null;
-        if (message instanceof Bitmap){
-            bitmap = (Bitmap)message;
+        MyData myData = null;
+        if (message instanceof MyData){
+            myData = (MyData) message;
         }
-        if (bitmap != null){
+        if (myData != null){
             //读取图片到ByteArrayOutputStream
 
 //            CharsetEncoder charsetEncoder = (CharsetEncoder)ioSession.getAttribute("encoder");
@@ -29,7 +29,7 @@ public class MyImageEncoder implements ProtocolEncoder {
 //            }
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            myData.bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
             byte[] picByte = baos.toByteArray();
 
             int length = picByte.length;
@@ -41,8 +41,9 @@ public class MyImageEncoder implements ProtocolEncoder {
             ioBuffer.setAutoShrink(true);
             ioBuffer.setAutoExpand(true);
             ioBuffer.putInt(length);
+            ioBuffer.putInt(myData.clientId);
             ioBuffer.put(picByte);
-            ioBuffer.capacity(length+4);
+            ioBuffer.capacity(length+8);
             ioBuffer.flip();
             out.write(ioBuffer);
         }

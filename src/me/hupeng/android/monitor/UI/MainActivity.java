@@ -8,16 +8,21 @@ import android.hardware.Camera;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+
+import android.os.Looper;
 import android.util.Log;
 import android.view.*;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import me.hupeng.android.monitor.Listener.SimpleListener;
 import me.hupeng.android.monitor.Mina.MinaUtil;
+import me.hupeng.android.monitor.Mina.MyData;
 import me.hupeng.android.monitor.R;
 import me.hupeng.android.monitor.Util.SharedPreferencesUtil;
 import me.hupeng.android.monitor.Util.ToastUtil;
+import org.apache.mina.core.session.IoSession;
 
 import java.io.ByteArrayOutputStream;
 
@@ -51,6 +56,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
     private long exitTime = 0;
 
     /**
+     * 图片对象
+     * */
+    private Bitmap bitmap = null;
+
+    /**
      * 初始化变量
      * */
     private void init(){
@@ -76,6 +86,24 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
 
         surfaceView.getHolder().addCallback(MainActivity.this);
         surfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        try{
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Looper.prepare();
+                    minaUtil = MinaUtil.getInstance(new SimpleListener() {
+
+                        @Override
+                        public void onReceive(Object obj, IoSession ioSession) {
+
+                        }
+                    },false,getServerIp());
+                }
+            }).start();
+        }catch (Exception e){
+
+        }
     }
 
     /**
@@ -98,6 +126,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
         int speed = info.getLinkSpeed();
         return ipText;
     }
+
+    /**
+     * 采集速度降低倍率
+     * */
+    private Integer loweredRate = 3;
+
+    /**
+     * 采集次数
+     * */
+    private Integer previewTime = 0;
 
     /**
      * 将获取到的Integer类型的IP地址转换成String类型的IP地址
@@ -138,6 +176,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
             Camera.Parameters params = camera.getParameters();
             params.setPreviewSize(352, 288);
             params.setRotation(90);
+
             camera.setDisplayOrientation(90);
 
             camera.setParameters(params);
@@ -157,32 +196,38 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
 
     @Override
     public void onPreviewFrame(byte[] bytes, Camera camera) {
-        Camera.Size size = camera.getParameters().getPreviewSize();
-        try {
-            YuvImage image = new YuvImage(bytes, ImageFormat.NV21, size.width,
-                    size.height, null);
+        if (previewTime ++ % loweredRate == 0){
+            Camera.Size size = camera.getParameters().getPreviewSize();
+            try {
+                YuvImage image = new YuvImage(bytes, ImageFormat.NV21, size.width,
+                        size.height, null);
 
-            if (image != null) {
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                image.compressToJpeg(new Rect(0, 0, size.width, size.height),
-                        70, stream);
-                Bitmap bmp = BitmapFactory.decodeByteArray(
-                        stream.toByteArray(), 0, stream.size());
-//                this.bitmap = rotateBitmapByDegree(bmp,90);
-//                if (videoFlag){
-//                    sendPic();
-//                }else {
-//                    bitmap.recycle();
-//                }
+                if (image != null) {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    image.compressToJpeg(new Rect(0, 0, size.width, size.height),
+                            50, stream);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(
+                            stream.toByteArray(), 0, stream.size());
+                    this.bitmap = rotateBitmapByDegree(bmp,90);
+                    sendPic();
 
-                stream.close();
+                    stream.close();
 
+                }
+            } catch (Exception ex) {
+                Log.e("Sys", "Error:" + ex.getMessage());
             }
-        } catch (Exception ex) {
-            Log.e("Sys", "Error:" + ex.getMessage());
         }
+        previewTime = previewTime % loweredRate;
     }
 
+    private void sendPic(){
+        MyData myData = new MyData();
+        myData.bitmap = bitmap;
+        myData.clientId = SharedPreferencesUtil.readInt(MainActivity.this, "client_id");
+        minaUtil.send(myData);
+
+    }
 
     /**
      * Switch监听器类
@@ -253,8 +298,29 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
      * */
     private String getServerIp(){
         String tempServerIp = SharedPreferencesUtil.readString(MainActivity.this, "server");
-        return (tempServerIp==null || tempServerIp.equals("")) ? "0.0.0.0" : tempServerIp;
+        return (tempServerIp==null || tempServerIp.equals("")) ? "183.175.12.160" : tempServerIp;
     }
 
+    /**
+     * bitmap旋转
+     * */
+    public static Bitmap rotateBitmapByDegree(Bitmap bm, int degree) {
+        Bitmap returnBm = null;
 
+        // 根据旋转角度，生成旋转矩阵
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        try {
+            // 将原始图片按照旋转矩阵进行旋转，并得到新的图片
+            returnBm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
+        } catch (OutOfMemoryError e) {
+        }
+        if (returnBm == null) {
+            returnBm = bm;
+        }
+        if (bm != returnBm) {
+            bm.recycle();
+        }
+        return returnBm;
+    }
 }

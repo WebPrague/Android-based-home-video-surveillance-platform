@@ -18,10 +18,29 @@ public class SharedPreferencesUtil {
     }
 
     /**
+     * 写入key,value对
+     * */
+    public static void writeInt(Context context, String key, int value){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("config",context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(key,value);
+        editor.commit();
+    }
+
+    /**
      * 读出value值
      * */
     public static String readString(Context context, String key){
         SharedPreferences sharedPreferences = context.getSharedPreferences("config", context.MODE_PRIVATE);
         return sharedPreferences.getString(key,null);
+    }
+
+
+    /**
+     * 读出value值
+     * */
+    public static int readInt(Context context, String key){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("config", context.MODE_PRIVATE);
+        return sharedPreferences.getInt(key,0);
     }
 }

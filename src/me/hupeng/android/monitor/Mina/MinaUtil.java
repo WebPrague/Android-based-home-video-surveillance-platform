@@ -20,6 +20,12 @@ import java.util.List;
  */
 public class MinaUtil {
     /**
+     * 客户端用：
+     * 服务器IP地址
+     * */
+    private String serverAddr = null;
+
+    /**
      * 标记
      * */
     private Boolean isServer = null;
@@ -68,15 +74,15 @@ public class MinaUtil {
         public Object message;
     }
 
-    public static MinaUtil getInstance(SimpleListener simpleListener,Boolean isServer){
+    public static MinaUtil getInstance(SimpleListener simpleListener,Boolean isServer,String serverAddr){
         if (isServer){
             if (minaUtilServer == null){
-                minaUtilServer = new MinaUtil(simpleListener,isServer);
+                minaUtilServer = new MinaUtil(simpleListener,isServer,null);
             }
             return minaUtilServer;
         }else {
             if (minaUtilClient == null){
-                minaUtilClient = new MinaUtil(simpleListener,isServer);
+                minaUtilClient = new MinaUtil(simpleListener,isServer,serverAddr);
             }
             return minaUtilClient;
         }
@@ -84,10 +90,12 @@ public class MinaUtil {
 
     }
 
+
+
     /**
      * 实现单例模式，私有构造函数
      * */
-    private MinaUtil(SimpleListener simpleListener, Boolean isServer){
+    private MinaUtil(SimpleListener simpleListener, Boolean isServer,String serverAddr){
         this.isServer = isServer;
         this.simpleListener = simpleListener;
         if (!isServer) {
@@ -95,7 +103,13 @@ public class MinaUtil {
             NioSocketConnector connector = new NioSocketConnector();
             connector.setHandler(new MyClientHandler());
             connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new MyImageFactory()));
-            ConnectFuture future = connector.connect(new InetSocketAddress("192.168.43.1", 9191));
+            ConnectFuture future;
+            if (serverAddr != null){
+                future = connector.connect(new InetSocketAddress(serverAddr, 9191));
+            }else {
+                future = connector.connect(new InetSocketAddress("192.168.43.1", 9191));
+            }
+
             future.awaitUninterruptibly();
             this.session = future.getSession();
         }else {
@@ -126,6 +140,8 @@ public class MinaUtil {
             }
         }
     }
+
+
 
     /**
      * 发送消息
