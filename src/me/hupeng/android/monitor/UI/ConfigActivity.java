@@ -64,7 +64,7 @@ public class ConfigActivity extends Activity{
      * */
     private String getServerIp(){
         String tempServerIp = SharedPreferencesUtil.readString(ConfigActivity.this, "server");
-        return (tempServerIp==null || tempServerIp.equals("")) ? "0.0.0.0" : tempServerIp;
+        return (tempServerIp==null || tempServerIp.equals("")) ? "183.175.12.160" : tempServerIp;
     }
 
     /**

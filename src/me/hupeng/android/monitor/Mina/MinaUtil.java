@@ -3,6 +3,7 @@ package me.hupeng.android.monitor.Mina;
 import android.graphics.Bitmap;
 import android.util.Log;
 import me.hupeng.android.monitor.Listener.SimpleListener;
+import me.hupeng.android.monitor.UI.MainActivity;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
@@ -98,20 +99,40 @@ public class MinaUtil {
     private MinaUtil(SimpleListener simpleListener, Boolean isServer,String serverAddr){
         this.isServer = isServer;
         this.simpleListener = simpleListener;
+        this.serverAddr = serverAddr;
         if (!isServer) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true){
+                        try {
+                            NioSocketConnector connector = new NioSocketConnector();
+                            connector.setHandler(new MyClientHandler());
+                            connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new MyImageFactory()));
+                            ConnectFuture future;
+                            if (serverAddr != null){
+                                future = connector.connect(new InetSocketAddress(serverAddr, 9191));
+                            }else {
+                                future = connector.connect(new InetSocketAddress("192.168.43.1", 9191));
+                            }
 
-            NioSocketConnector connector = new NioSocketConnector();
-            connector.setHandler(new MyClientHandler());
-            connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new MyImageFactory()));
-            ConnectFuture future;
-            if (serverAddr != null){
-                future = connector.connect(new InetSocketAddress(serverAddr, 9191));
-            }else {
-                future = connector.connect(new InetSocketAddress("192.168.43.1", 9191));
-            }
+                            future.awaitUninterruptibly();
+                            MinaUtil.this.session = future.getSession();
+                            break;
 
-            future.awaitUninterruptibly();
-            this.session = future.getSession();
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+            }).start();
+
         }else {
             if (acceptor == null){
                 acceptor = new NioSocketAcceptor(Runtime.getRuntime().availableProcessors() + 1);
@@ -163,7 +184,13 @@ public class MinaUtil {
             return flag;
         }else {
             try {
-                session.write(obj);
+                if (session == null){
+                    MyData myData = (MyData)obj;
+                    myData.bitmap.recycle();
+                }else{
+                    session.write(obj);
+                }
+
             }catch (Exception e){
                 return false;
             }
@@ -231,6 +258,34 @@ public class MinaUtil {
         public void sessionClosed(IoSession session) throws Exception {
             System.out.println(session.getId());
             System.out.println("sessionClosed");
+            MinaUtil.this.session = null;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    while (true) {
+                        try {
+                            Thread.sleep(1000);
+                            NioSocketConnector connector = new NioSocketConnector();
+                            connector.setHandler(new MyClientHandler());
+                            connector.getFilterChain().addLast("codec", new ProtocolCodecFilter(new MyImageFactory()));
+                            ConnectFuture future;
+                            if (serverAddr != null) {
+                                future = connector.connect(new InetSocketAddress(serverAddr, 9191));
+                            } else {
+                                future = connector.connect(new InetSocketAddress("192.168.43.1", 9191));
+                            }
+                            future.awaitUninterruptibly();
+                            MinaUtil.this.session = future.getSession();
+                            System.out.println("连接");
+                            break;
+                        } catch (Exception ex) {
+                            Log.i("连接", ex.getMessage());
+                            System.out.println("连接:" + ex.getMessage());
+                        }
+                    }
+                }
+            }).start();
         }
 
         public void sessionCreated(IoSession session) throws Exception {

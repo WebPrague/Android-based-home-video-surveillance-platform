@@ -37,6 +37,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
     private MinaUtil minaUtil = null;
 
     /**
+     * 录像标记
+     * */
+    private boolean videoFlag = false;
+
+
+    /**
      * 摄像头相关代码
      * */
     private Camera camera = null;
@@ -180,7 +186,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
             camera.setDisplayOrientation(90);
 
             camera.setParameters(params);
-//            camera.startPreview() ;
+            camera.startPreview() ;
 
             camera.setPreviewCallback(this);
         }catch(Exception e){
@@ -196,7 +202,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
 
     @Override
     public void onPreviewFrame(byte[] bytes, Camera camera) {
-        if (previewTime ++ % loweredRate == 0){
+        if (videoFlag && previewTime ++ % loweredRate == 0){
             Camera.Size size = camera.getParameters().getPreviewSize();
             try {
                 YuvImage image = new YuvImage(bytes, ImageFormat.NV21, size.width,
@@ -238,10 +244,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
         public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
             if (isChecked){
                 //open
-                camera.startPreview();
+                videoFlag = true;
+                //camera.startPreview();
             }else {
                 //close
-                camera.stopPreview();
+                videoFlag = false;
+                //camera.stopPreview();
             }
         }
     }
