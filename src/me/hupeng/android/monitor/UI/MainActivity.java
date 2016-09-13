@@ -214,7 +214,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
                             50, stream);
                     Bitmap bmp = BitmapFactory.decodeByteArray(
                             stream.toByteArray(), 0, stream.size());
-                    this.bitmap = rotateBitmapByDegree(bmp,90);
+                    this.bitmap = rotateBitmapByDegree(bmp,getAngle());
                     sendPic();
 
                     stream.close();
@@ -330,5 +330,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback,Cam
             bm.recycle();
         }
         return returnBm;
+    }
+
+    private int getAngle(){
+        int angle = SharedPreferencesUtil.readInt(MainActivity.this, "angle", -1);
+        return angle==-1? 90 : angle;
     }
 }

@@ -43,4 +43,12 @@ public class SharedPreferencesUtil {
         SharedPreferences sharedPreferences = context.getSharedPreferences("config", context.MODE_PRIVATE);
         return sharedPreferences.getInt(key,0);
     }
+
+    /**
+     * 读出value值
+     * */
+    public static int readInt(Context context, String key, int def){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("config", context.MODE_PRIVATE);
+        return sharedPreferences.getInt(key,def);
+    }
 }

@@ -19,6 +19,7 @@ public class ConfigActivity extends Activity{
     private EditText etServerIp;
     private Button btn_save;
     private EditText etClientId;
+    private EditText etAngle;
 
     private void init(){
         ActionBar actionBar = getActionBar();
@@ -27,11 +28,14 @@ public class ConfigActivity extends Activity{
         etServerIp = (EditText) findViewById(R.id.et_server_address);
         btn_save = (Button) findViewById(R.id.btn_save_config);
         etClientId = (EditText) findViewById(R.id.et_client_id);
+        etAngle = (EditText) findViewById(R.id.et_angle);
+
         //绑定单击回调
         btn_save.setOnClickListener(new MyOnClickListener());
 
         etServerIp.setText(getServerIp());
         etClientId.setText(SharedPreferencesUtil.readInt(ConfigActivity.this,"client_id")+"");
+        etAngle.setText(getAngle()+"");
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +56,8 @@ public class ConfigActivity extends Activity{
             try{
                 int clientId = Integer.parseInt(tempClientId);
                 SharedPreferencesUtil.writeInt(ConfigActivity.this, "client_id", clientId);
+                int angle = Integer.parseInt(etAngle.getText().toString());
+                SharedPreferencesUtil.writeInt(ConfigActivity.this, "angle" , angle);
             }catch (Exception e){
 
             }
@@ -78,5 +84,10 @@ public class ConfigActivity extends Activity{
                 this.finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private int getAngle(){
+        int angle = SharedPreferencesUtil.readInt(ConfigActivity.this, "angle",-1);
+        return angle==-1? 90 : angle;
     }
 }

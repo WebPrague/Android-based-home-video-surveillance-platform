@@ -46,6 +46,11 @@ public class MyImageEncoder implements ProtocolEncoder {
             ioBuffer.capacity(length+8);
             ioBuffer.flip();
             out.write(ioBuffer);
+
+            if (message instanceof MyData){
+
+                myData.bitmap.recycle();
+            }
         }
     }
 
